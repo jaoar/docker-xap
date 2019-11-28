@@ -9,9 +9,16 @@ ARG DEPENDENCIES="\
     com/sun/messaging/mq/fscontext/4.6-b01/fscontext-4.6-b01.jar \
 "
 
+ARG LOG_DEPENDENCIES="\
+    org/apache/logging/log4j/log4j-api/2.11.1/log4j-api-2.11.1.jar \
+    org/apache/logging/log4j/log4j-core/2.11.1/log4j-core-2.11.1.jar \
+    org/apache/logging/log4j/log4j-slf4j-impl/2.11.1/log4j-slf4j-impl-2.11.1.jar \
+"
+
 ARG CLASSPATH_XAP=/opt/gigaspaces/lib/platform/ext
 ARG CLASSPATH_PU=/opt/gigaspaces/lib/optional/pu-common
 ARG GS_CONF_DIR=/opt/gigaspaces/config/gsa
+ARG LOGGING_DIR=/opt/gigaspaces/lib/platform/logger
 
 RUN set -ex \
     && mkdir -p \
@@ -24,10 +31,15 @@ COPY ./lib-ext/* ${CLASSPATH_XAP}/
 
 RUN set -ex \
     && for ARTIFACT in ${DEPENDENCIES}; do \
-           wget "http://search.maven.org/remotecontent?filepath=${ARTIFACT}" -O "${CLASSPATH_PU}/$(basename ${ARTIFACT})" ; \
+           wget "http://search.maven.org/remotecontent?filepath=${ARTIFACT}" -O "${CLASSPATH_PU}/$(basename ${ARTIFACT})" ;\
+       done \
+    && rm -rf /opt/gigaspaces/lib/platform/logger/slf4j-jdk14-1.6.6.jar \
+	&& rm -rf /opt/gigaspaces/lib/platform/logger/xap-slf4j.jar \
+    && for ARTIFACT in ${LOG_DEPENDENCIES}; do \
+           wget "http://search.maven.org/remotecontent?filepath=${ARTIFACT}" -O "${LOGGING_DIR}/$(basename ${ARTIFACT})" ;\
        done \
     && rm -rf /var/lib/apt/lists/*
-    
+
 VOLUME ["${CLASSPATH_XAP}"]
 VOLUME ["${CLASSPATH_PU}"]
 VOLUME ["${GS_CONF_DIR}"]
